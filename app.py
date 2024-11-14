@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import os
 import shutil
 from werkzeug.utils import secure_filename
@@ -21,8 +21,15 @@ file_categories = {
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Allowed file extensions for upload
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".pdf", ".doc", ".docx", ".txt", ".xls", ".xlsx", ".ppt", ".pptx", ".mp3", ".wav", ".aac", ".flac", ".mp4", ".avi", ".mov", ".mkv", ".zip", ".rar", ".tar", ".gz", ".py", ".js", ".html", ".css"}
+
 # Ensure the upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Function to check if a file is allowed
+def allowed_file(filename):
+    return any(filename.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS)
 
 # Organize files based on their type
 def organize_files():
@@ -48,15 +55,28 @@ def organize_files():
 def index():
     message = ""
     if request.method == "POST":
-        # Get the directory path from the form
-        directory = request.form.get("directory")
+        # Check if a file was uploaded
+        if 'file' not in request.files:
+            message = "No file part"
+            return render_template("index.html", message=message)
+        file = request.files['file']
         
-        # Validate and organize files
-        if os.path.isdir(directory):
+        # If user doesn't select a file, browser also submits an empty part without a filename
+        if file.filename == '':
+            message = "No selected file"
+            return render_template("index.html", message=message)
+        
+        if file and allowed_file(file.filename):
+            # Save the file securely
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            message = "File uploaded successfully!"
+
+            # Organize files after upload
             organize_files()
-            message = "Files organized successfully!"
         else:
-            message = "Invalid directory."
+            message = "Invalid file type."
+
     return render_template("index.html", message=message)
 
 # Use Waitress to run the app
