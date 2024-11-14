@@ -16,15 +16,15 @@
       <div class="textMid">
         Effortlessly Sort, Organize, and Clean Your Files with a Single Click
       </div>
-      <form method="POST" enctype="multipart/form-data">
+      <form method="POST">
         <div class="form">
           <input
-            type="file"
-            id="file"
-            name="file"
-            multiple
+            type="text"
+            id="directory"
+            name="directory"
+            placeholder="e.g., /path/to/directory"
           />
-          <button type="submit" class="button">Upload and Organize —</button>
+          <button type="submit" class="button">Organize —</button>
         </div>
       </form>
       <p class="message">{{ message }}</p>
